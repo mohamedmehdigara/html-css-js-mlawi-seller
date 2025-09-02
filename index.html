@@ -21,6 +21,19 @@
             max-height: 400px;
             overflow-y: auto;
         }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-4 md:p-8">
@@ -36,6 +49,25 @@
             <!-- Menu Section -->
             <section class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
                 <h2 class="text-3xl font-bold text-gray-800 mb-6">Our Menu</h2>
+                
+                <!-- Daily Special Section -->
+                <div id="dailySpecial" class="bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-2xl p-6 mb-8 shadow-xl flex flex-col md:flex-row items-center md:justify-between animate-fade-in">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">🔥 Today's Special! 🔥</h3>
+                        <p id="specialName" class="text-xl font-semibold"></p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <span id="specialPrice" class="text-3xl font-extrabold"></span>
+                    </div>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                    <input type="text" id="menuSearch" placeholder="Search for Mlawi..." class="flex-grow px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <button id="showAllBtn" class="w-full sm:w-auto px-6 py-2 rounded-xl border border-orange-500 text-orange-500 font-bold hover:bg-orange-50 transition">Show All</button>
+                    <button id="showFavoritesBtn" class="w-full sm:w-auto px-6 py-2 rounded-xl bg-gray-200 text-gray-700 font-bold hover:bg-orange-500 hover:text-white transition">Show Favorites</button>
+                </div>
+
                 <div id="mlawiMenu" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     <!-- Mlawi Cards will be injected here by JavaScript -->
                 </div>
@@ -48,11 +80,31 @@
                     <p id="emptyCartMessage" class="text-gray-500 text-center">Your cart is empty. Add some Mlawi!</p>
                 </div>
                 
+                <!-- Order notes -->
+                <div class="mb-4">
+                    <label for="orderNotes" class="text-gray-700 font-semibold mb-2 block">Order Notes:</label>
+                    <textarea id="orderNotes" rows="3" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g., 'No harissa on the Mlawi Escalope'"></textarea>
+                </div>
+                
+                <!-- Tip section -->
+                <div class="mb-4">
+                    <label class="text-gray-700 font-semibold mb-2 block">Add a Tip:</label>
+                    <div class="flex space-x-2">
+                        <button class="tip-btn px-4 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-orange-500 hover:text-white transition" data-tip="0.10">10%</button>
+                        <button class="tip-btn px-4 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-orange-500 hover:text-white transition" data-tip="0.15">15%</button>
+                        <button class="tip-btn px-4 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-orange-500 hover:text-white transition" data-tip="0.20">20%</button>
+                    </div>
+                </div>
+
                 <!-- Order Totals -->
                 <div class="border-t pt-4">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-xl font-semibold text-gray-700">Subtotal:</span>
                         <span id="subtotal" class="text-xl font-bold text-gray-800">0.00 TND</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xl font-semibold text-gray-700">Tip:</span>
+                        <span id="tipAmount" class="text-xl font-bold text-gray-800">0.00 TND</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-xl font-semibold text-gray-700">Total:</span>
@@ -60,10 +112,15 @@
                     </div>
                 </div>
 
-                <!-- Order Button -->
-                <button id="placeOrderBtn" class="mt-6 w-full py-4 px-6 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl shadow-lg transition transform active:scale-95 disabled:bg-gray-400" disabled>
-                    Place Order
-                </button>
+                <!-- Order Buttons -->
+                <div class="flex flex-col space-y-4 mt-6">
+                    <button id="clearCartBtn" class="w-full py-4 px-6 bg-red-400 hover:bg-red-500 text-white font-bold text-lg rounded-xl shadow-lg transition transform active:scale-95 disabled:bg-gray-400" disabled>
+                        Clear Cart
+                    </button>
+                    <button id="placeOrderBtn" class="w-full py-4 px-6 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl shadow-lg transition transform active:scale-95 disabled:bg-gray-400" disabled>
+                        Place Order
+                    </button>
+                </div>
             </aside>
         </main>
     </div>
@@ -116,22 +173,56 @@
         const mlawiMenuEl = document.getElementById('mlawiMenu');
         const orderSummaryEl = document.getElementById('orderSummary');
         const subtotalEl = document.getElementById('subtotal');
+        const tipAmountEl = document.getElementById('tipAmount');
         const totalEl = document.getElementById('total');
         const placeOrderBtn = document.getElementById('placeOrderBtn');
         const emptyCartMessageEl = document.getElementById('emptyCartMessage');
         const confirmationModal = document.getElementById('confirmationModal');
+        const menuSearch = document.getElementById('menuSearch');
+        const clearCartBtn = document.getElementById('clearCartBtn');
+        const tipButtons = document.querySelectorAll('.tip-btn');
+        const showAllBtn = document.getElementById('showAllBtn');
+        const showFavoritesBtn = document.getElementById('showFavoritesBtn');
+        const specialNameEl = document.getElementById('specialName');
+        const specialPriceEl = document.getElementById('specialPrice');
 
         let cart = {};
-
+        let currentTip = 0;
+        let isShowingFavorites = false;
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        
+        // Determine the daily special based on the current date
+        const today = new Date();
+        const dailySpecialIndex = today.getDate() % menuItems.length;
+        const dailySpecial = menuItems[dailySpecialIndex];
+        
         /**
-         * Renders the menu items on the page.
+         * Renders the menu items on the page based on the search and filter settings.
          */
         function renderMenu() {
             mlawiMenuEl.innerHTML = '';
-            menuItems.forEach(item => {
+            const searchTerm = menuSearch.value.toLowerCase();
+            let filteredItems = menuItems.filter(item => item.name.toLowerCase().includes(searchTerm));
+
+            if (isShowingFavorites) {
+                filteredItems = filteredItems.filter(item => favorites.includes(item.id));
+            }
+
+            if (filteredItems.length === 0) {
+                mlawiMenuEl.innerHTML = '<p class="text-center text-gray-500 col-span-full">No items found.</p>';
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const isFavorite = favorites.includes(item.id);
                 const card = document.createElement('div');
-                card.className = 'mlawi-card bg-gray-50 rounded-xl shadow-md p-4 transition-all duration-300 transform hover:scale-105 hover:bg-orange-50';
+                card.className = 'mlawi-card relative bg-gray-50 rounded-xl shadow-md p-4 transition-all duration-300 transform hover:scale-105 hover:bg-orange-50 animate-fade-in';
                 card.innerHTML = `
+                    <button data-id="${item.id}" data-action="toggle-favorite" class="absolute top-2 right-2 text-xl z-10 transition-transform transform hover:scale-125">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 transition-colors duration-300 ${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-300'}" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.4 5.4 0 017.5 3c1.74 0 3.48.98 4.5 2.5a5.4 5.4 0 014.5-2.5C19.6 3 23 6.08 23 10c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </button>
                     <div class="relative overflow-hidden rounded-xl h-40 mb-4">
                         <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
                     </div>
@@ -147,35 +238,11 @@
                 `;
                 mlawiMenuEl.appendChild(card);
             });
-
-            // Attach event listeners for the menu
-            mlawiMenuEl.addEventListener('click', (event) => {
-                const button = event.target.closest('button');
-                if (!button) return;
-
-                const itemId = parseInt(button.dataset.id, 10);
-                const action = button.dataset.action;
-                
-                if (action === 'increase') {
-                    if (!cart[itemId]) {
-                        cart[itemId] = { ...menuItems.find(i => i.id === itemId), quantity: 1 };
-                    } else {
-                        cart[itemId].quantity++;
-                    }
-                } else if (action === 'decrease') {
-                    if (cart[itemId] && cart[itemId].quantity > 0) {
-                        cart[itemId].quantity--;
-                        if (cart[itemId].quantity === 0) {
-                            delete cart[itemId];
-                        }
-                    }
-                }
-                updateUI();
-            });
+            updateFilterButtons();
         }
 
         /**
-         * Updates the order summary and total price.
+         * Updates the order summary and total price, including tip.
          */
         function updateUI() {
             orderSummaryEl.innerHTML = '';
@@ -185,9 +252,11 @@
             if (itemKeys.length === 0) {
                 emptyCartMessageEl.style.display = 'block';
                 placeOrderBtn.disabled = true;
+                clearCartBtn.disabled = true;
             } else {
                 emptyCartMessageEl.style.display = 'none';
                 placeOrderBtn.disabled = false;
+                clearCartBtn.disabled = false;
                 
                 itemKeys.forEach(itemId => {
                     const item = cart[itemId];
@@ -215,12 +284,16 @@
                 }
             });
 
+            const tipAmount = subtotal * currentTip;
+            const total = subtotal + tipAmount;
+
             subtotalEl.textContent = subtotal.toFixed(2) + ' TND';
-            totalEl.textContent = (subtotal).toFixed(2) + ' TND';
+            tipAmountEl.textContent = tipAmount.toFixed(2) + ' TND';
+            totalEl.textContent = total.toFixed(2) + ' TND';
         }
 
         /**
-         * Places the order.
+         * Places the order and clears the cart.
          */
         function placeOrder() {
             if (Object.keys(cart).length === 0) {
@@ -230,7 +303,76 @@
 
             showModal();
             cart = {}; // Clear cart after successful order
+            currentTip = 0; // Reset tip
+            updateTipButtons();
             updateUI();
+            renderMenu();
+        }
+
+        /**
+         * Clears the cart.
+         */
+        function clearCart() {
+            cart = {};
+            currentTip = 0;
+            updateTipButtons();
+            updateUI();
+            renderMenu();
+        }
+
+        /**
+         * Sets the current tip percentage.
+         */
+        function setTip(percentage) {
+            currentTip = percentage;
+            updateTipButtons();
+            updateUI();
+        }
+
+        /**
+         * Updates the active state of the tip buttons.
+         */
+        function updateTipButtons() {
+            tipButtons.forEach(btn => {
+                if (parseFloat(btn.dataset.tip) === currentTip) {
+                    btn.classList.add('bg-orange-500', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'text-gray-700');
+                } else {
+                    btn.classList.remove('bg-orange-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-700');
+                }
+            });
+        }
+        
+        /**
+         * Toggles the favorite status of a menu item.
+         */
+        function toggleFavorite(itemId) {
+            const index = favorites.indexOf(itemId);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(itemId);
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            renderMenu();
+        }
+        
+        /**
+         * Updates the active state of the menu filter buttons.
+         */
+        function updateFilterButtons() {
+            if (isShowingFavorites) {
+                showFavoritesBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                showFavoritesBtn.classList.add('bg-orange-500', 'text-white');
+                showAllBtn.classList.remove('bg-orange-500', 'text-white');
+                showAllBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-none');
+            } else {
+                showFavoritesBtn.classList.remove('bg-orange-500', 'text-white');
+                showFavoritesBtn.classList.add('bg-gray-200', 'text-gray-700');
+                showAllBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-none');
+                showAllBtn.classList.add('bg-orange-500', 'text-white', 'border-none');
+            }
         }
 
         /**
@@ -247,13 +389,59 @@
             confirmationModal.classList.add('hidden');
         }
 
-        // Attach event listeners
+        // --- Event Listeners ---
         window.addEventListener('load', () => {
+            specialNameEl.textContent = dailySpecial.name;
+            specialPriceEl.textContent = dailySpecial.price.toFixed(2) + ' TND';
             renderMenu();
             updateUI();
         });
 
+        mlawiMenuEl.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            if (!button) return;
+
+            const itemId = parseInt(button.dataset.id, 10);
+            const action = button.dataset.action;
+            
+            if (action === 'increase') {
+                if (!cart[itemId]) {
+                    cart[itemId] = { ...menuItems.find(i => i.id === itemId), quantity: 1 };
+                } else {
+                    cart[itemId].quantity++;
+                }
+            } else if (action === 'decrease') {
+                if (cart[itemId] && cart[itemId].quantity > 0) {
+                    cart[itemId].quantity--;
+                    if (cart[itemId].quantity === 0) {
+                        delete cart[itemId];
+                    }
+                }
+            } else if (action === 'toggle-favorite') {
+                toggleFavorite(itemId);
+                return; // Stop here to prevent UI update issues
+            }
+            updateUI();
+        });
+
+        menuSearch.addEventListener('input', renderMenu);
+        showAllBtn.addEventListener('click', () => {
+            isShowingFavorites = false;
+            renderMenu();
+        });
+        showFavoritesBtn.addEventListener('click', () => {
+            isShowingFavorites = true;
+            renderMenu();
+        });
+
+        tipButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setTip(parseFloat(button.dataset.tip));
+            });
+        });
+
         placeOrderBtn.addEventListener('click', placeOrder);
+        clearCartBtn.addEventListener('click', clearCart);
     </script>
 </body>
 </html>

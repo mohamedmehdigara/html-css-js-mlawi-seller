@@ -18,7 +18,7 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
         }
-        .order-summary, .order-history {
+        .order-summary, .order-history, .analytics-list {
             max-height: 400px;
             overflow-y: auto;
         }
@@ -169,6 +169,14 @@
                     </div>
                 </div>
 
+                <!-- Popular Items Dashboard -->
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Popular Items</h2>
+                    <div id="analyticsDashboard" class="analytics-list space-y-4">
+                        <p id="emptyAnalyticsMessage" class="text-gray-500 text-center">No popularity data yet.</p>
+                    </div>
+                </div>
+
                 <!-- Order History Section -->
                 <div>
                     <h2 class="text-3xl font-bold text-gray-800 mb-6">Order History</h2>
@@ -230,6 +238,7 @@
         const mlawiMenuEl = document.getElementById('mlawiMenu');
         const orderSummaryEl = document.getElementById('orderSummary');
         const orderHistoryEl = document.getElementById('orderHistory');
+        const analyticsDashboardEl = document.getElementById('analyticsDashboard');
         const subtotalEl = document.getElementById('subtotal');
         const tipAmountEl = document.getElementById('tipAmount');
         const totalEl = document.getElementById('total');
@@ -244,6 +253,7 @@
         const specialNameEl = document.getElementById('specialName');
         const specialPriceEl = document.getElementById('specialPrice');
         const emptyHistoryMessageEl = document.getElementById('emptyHistoryMessage');
+        const emptyAnalyticsMessageEl = document.getElementById('emptyAnalyticsMessage');
 
         let cart = {};
         let currentTip = 0;
@@ -371,6 +381,9 @@
             orderHistory.unshift(newOrder); // Add to the beginning
             localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
 
+            // Track popularity of ordered items
+            trackOrderPopularity();
+
             showModal();
             cart = {}; // Clear cart after successful order
             currentTip = 0; // Reset tip
@@ -378,6 +391,7 @@
             updateUI();
             renderMenu();
             renderOrderHistory();
+            renderAnalyticsDashboard();
         }
 
         /**
@@ -401,10 +415,33 @@
                             ${order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('')}
                         </ul>
                         <p class="text-right font-bold text-lg text-orange-600">Total: ${order.total.toFixed(2)} TND</p>
+                        <button data-order-id="${order.id}" class="reorder-btn w-full mt-2 py-2 px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition transform active:scale-95">Re-order</button>
                     `;
                     orderHistoryEl.appendChild(historyItem);
                 });
             }
+        }
+        
+        /**
+         * Adds a past order to the current cart.
+         */
+        function reorder(orderId) {
+            const orderHistory = JSON.parse(localStorage.getItem('orderHistory')) || [];
+            const orderToReorder = orderHistory.find(order => order.id === orderId);
+
+            if (!orderToReorder) {
+                console.warn('Order not found in history.');
+                return;
+            }
+
+            // Clear current cart before adding re-ordered items
+            cart = {};
+            orderToReorder.items.forEach(item => {
+                cart[item.id] = { ...item };
+            });
+
+            updateUI();
+            renderMenu();
         }
 
         /**
@@ -474,6 +511,48 @@
         }
 
         /**
+         * Tracks the popularity of items and saves it to localStorage.
+         */
+        function trackOrderPopularity() {
+            const popularity = JSON.parse(localStorage.getItem('itemPopularity')) || {};
+            Object.values(cart).forEach(item => {
+                if (!popularity[item.id]) {
+                    popularity[item.id] = { name: item.name, count: 0 };
+                }
+                popularity[item.id].count += item.quantity;
+            });
+            localStorage.setItem('itemPopularity', JSON.stringify(popularity));
+        }
+
+        /**
+         * Renders the analytics dashboard with the most popular items.
+         */
+        function renderAnalyticsDashboard() {
+            const popularity = JSON.parse(localStorage.getItem('itemPopularity')) || {};
+            const popularItems = Object.values(popularity).sort((a, b) => b.count - a.count);
+            
+            analyticsDashboardEl.innerHTML = '';
+            if (popularItems.length === 0) {
+                emptyAnalyticsMessageEl.style.display = 'block';
+            } else {
+                emptyAnalyticsMessageEl.style.display = 'none';
+                popularItems.slice(0, 3).forEach((item, index) => {
+                    const rank = index + 1;
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'bg-gray-50 p-4 rounded-xl shadow-md flex justify-between items-center';
+                    itemEl.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl font-bold text-orange-600">${rank}.</span>
+                            <span class="font-semibold text-gray-800">${item.name}</span>
+                        </div>
+                        <span class="text-gray-600">${item.count} orders</span>
+                    `;
+                    analyticsDashboardEl.appendChild(itemEl);
+                });
+            }
+        }
+
+        /**
          * Shows the confirmation modal.
          */
         function showModal() {
@@ -518,6 +597,7 @@
             renderMenu();
             updateUI();
             renderOrderHistory();
+            renderAnalyticsDashboard();
         });
 
         mlawiMenuEl.addEventListener('click', (event) => {
@@ -542,9 +622,17 @@
                 }
             } else if (action === 'toggle-favorite') {
                 toggleFavorite(itemId);
-                return; // Stop here to prevent UI update issues
+                return;
             }
             updateUI();
+        });
+
+        orderHistoryEl.addEventListener('click', (event) => {
+            const reorderBtn = event.target.closest('.reorder-btn');
+            if (reorderBtn) {
+                const orderId = parseInt(reorderBtn.dataset.orderId, 10);
+                reorder(orderId);
+            }
         });
 
         menuSearch.addEventListener('input', renderMenu);

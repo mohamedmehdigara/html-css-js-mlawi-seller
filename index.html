@@ -18,7 +18,7 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
         }
-        .order-summary, .order-history, .analytics-list {
+        .order-summary, .order-history, .analytics-list, .reviews-list {
             max-height: 400px;
             overflow-y: auto;
         }
@@ -105,11 +105,22 @@
                     </div>
                 </div>
 
+                <!-- Tip of the Day Section -->
+                <div id="tipOfTheDay" class="bg-blue-100 text-blue-800 rounded-2xl p-6 mb-8 shadow-md animate-fade-in">
+                    <h3 class="text-xl font-bold mb-2">💡 Tip of the Day</h3>
+                    <p id="tipText" class="text-lg"></p>
+                </div>
+
                 <!-- Filters & Search -->
                 <div class="flex flex-col sm:flex-row gap-4 mb-6">
                     <input type="text" id="menuSearch" placeholder="Search for Mlawi..." class="flex-grow px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
                     <button id="showAllBtn" class="w-full sm:w-auto px-6 py-2 rounded-xl border border-orange-500 text-orange-500 font-bold hover:bg-orange-50 transition transform active:scale-95">Show All</button>
                     <button id="showFavoritesBtn" class="w-full sm:w-auto px-6 py-2 rounded-xl bg-gray-200 text-gray-700 font-bold hover:bg-orange-500 hover:text-white transition transform active:scale-95">Show Favorites</button>
+                </div>
+
+                <!-- Category Filters -->
+                <div id="categoryFilters" class="flex flex-wrap gap-2 mb-6">
+                    <!-- Buttons will be injected here by JavaScript -->
                 </div>
 
                 <div id="mlawiMenu" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -184,6 +195,40 @@
                         <p id="emptyHistoryMessage" class="text-gray-500 text-center">No past orders found.</p>
                     </div>
                 </div>
+
+                <!-- Customer Reviews Section -->
+                <div class="mt-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Customer Reviews</h2>
+                    <!-- Review Form -->
+                    <form id="reviewForm" class="space-y-4 p-4 bg-gray-50 rounded-xl shadow-md">
+                        <div>
+                            <label for="reviewName" class="block text-gray-700 font-semibold mb-1">Your Name</label>
+                            <input type="text" id="reviewName" class="w-full p-2 border border-gray-300 rounded-lg" required>
+                        </div>
+                        <div>
+                            <label for="reviewRating" class="block text-gray-700 font-semibold mb-1">Rating</label>
+                            <select id="reviewRating" class="w-full p-2 border border-gray-300 rounded-lg">
+                                <option value="5">⭐⭐⭐⭐⭐</option>
+                                <option value="4">⭐⭐⭐⭐</option>
+                                <option value="3">⭐⭐⭐</option>
+                                <option value="2">⭐⭐</option>
+                                <option value="1">⭐</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="reviewText" class="block text-gray-700 font-semibold mb-1">Your Review</label>
+                            <textarea id="reviewText" rows="4" class="w-full p-2 border border-gray-300 rounded-lg" required></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition transform active:scale-95">
+                            Submit Review
+                        </button>
+                    </form>
+
+                    <!-- Reviews Display -->
+                    <div id="reviewsDisplay" class="reviews-list mt-6 space-y-4">
+                        <p id="emptyReviewsMessage" class="text-gray-500 text-center">No reviews yet. Be the first!</p>
+                    </div>
+                </div>
             </aside>
         </main>
     </div>
@@ -205,31 +250,36 @@
     <script>
         // Mlawi menu data
         const menuItems = [
-            { id: 1, name: 'Mlawi Cheese', price: 4.50, image: 'https://placehold.co/400x300/a855f7/ffffff?text=Mlawi%20Cheese' },
-            { id: 2, name: 'Mlawi Tuna', price: 6.00, image: 'https://placehold.co/400x300/f59e0b/ffffff?text=Mlawi%20Tuna' },
-            { id: 3, name: 'Mlawi Harissa', price: 3.50, image: 'https://placehold.co/400x300/ef4444/ffffff?text=Mlawi%20Harissa' },
-            { id: 4, name: 'Mlawi Escalope', price: 8.00, image: 'https://placehold.co/400x300/3b82f6/ffffff?text=Mlawi%20Escalope' },
-            { id: 5, name: 'Mlawi Salami', price: 7.50, image: 'https://placehold.co/400x300/22c55e/ffffff?text=Mlawi%20Salami' },
-            { id: 6, name: 'Mlawi Merguez', price: 9.00, image: 'https://placehold.co/400x300/ec4899/ffffff?text=Mlawi%20Merguez' },
-            { id: 10, name: 'Galette Farcie', price: 6.50, image: 'https://placehold.co/400x300/fbbf24/ffffff?text=Galette%20Farcie' },
-            { id: 11, name: 'Pizza', price: 10.00, image: 'https://placehold.co/400x300/f472b6/ffffff?text=Pizza' },
-            { id: 12, name: 'Baguette Farcie', price: 9.50, image: 'https://placehold.co/400x300/818cf8/ffffff?text=Baguette%20Farcie' },
-            { id: 13, name: 'Chapati Jambon', price: 6.00, image: 'https://placehold.co/400x300/818cf8/ffffff?text=Chapati%20Jambon' },
-            { id: 14, name: 'Chapati Ton', price: 7.00, image: 'https://placehold.co/400x300/fb923c/ffffff?text=Chapati%20Ton' },
-            { id: 15, name: 'Chapati Fromage', price: 5.50, image: 'https://placehold.co/400x300/f472b6/ffffff?text=Chapati%20Fromage' },
-            { id: 16, name: 'Chapati Salami', price: 8.00, image: 'https://placehold.co/400x300/3b82f6/ffffff?text=Chapati%20Salami' },
-            { id: 17, name: 'Maqloub Jambon', price: 9.00, image: 'https://placehold.co/400x300/60a5fa/ffffff?text=Maqloub%20Jambon' },
-            { id: 18, name: 'Maqloub Ton', price: 10.00, image: 'https://placehold.co/400x300/34d399/ffffff?text=Maqloub%20Ton' },
-            { id: 19, name: 'Maqloub Fromage', price: 9.50, image: 'https://placehold.co/400x300/c084fc/ffffff?text=Maqloub%20Fromage' },
-            { id: 20, name: 'Maqloub Salami', price: 11.00, image: 'https://placehold.co/400x300/a855f7/ffffff?text=Maqloub%20Salami' },
-            { id: 21, name: 'Malfouf Jambon', price: 8.00, image: 'https://placehold.co/400x300/f59e0b/ffffff?text=Malfouf%20Jambon' },
-            { id: 22, name: 'Malfouf Ton', price: 9.00, image: 'https://placehold.co/400x300/ef4444/ffffff?text=Malfouf%20Ton' },
-            { id: 23, name: 'Malfouf Fromage', price: 8.50, image: 'https://placehold.co/400x300/3b82f6/ffffff?text=Malfouf%20Fromage' },
-            { id: 24, name: 'Malfouf Salami', price: 10.00, image: 'https://placehold.co/400x300/22c55e/ffffff?text=Malfouf%20Salami' },
-            { id: 25, name: 'Pizza Margueritta', price: 11.00, image: 'https://placehold.co/400x300/ff7f50/ffffff?text=Pizza%20Margueritta' },
-            { id: 26, name: 'Pizza Jambon', price: 13.00, image: 'https://placehold.co/400x300/e9d5ff/ffffff?text=Pizza%20Jambon' },
-            { id: 27, name: 'Pizza Ton', price: 14.00, image: 'https://placehold.co/400x300/a78bfa/ffffff?text=Pizza%20Ton' },
-            { id: 28, name: 'Pizza Escalope', price: 15.00, image: 'https://placehold.co/400x300/10b981/ffffff?text=Pizza%20Escalope' }
+            { id: 1, name: 'Mlawi Cheese', price: 4.50, category: 'Mlawi', image: 'https://placehold.co/400x300/a855f7/ffffff?text=Mlawi%20Cheese' },
+            { id: 2, name: 'Mlawi Tuna', price: 6.00, category: 'Mlawi', image: 'https://placehold.co/400x300/f59e0b/ffffff?text=Mlawi%20Tuna' },
+            { id: 3, name: 'Mlawi Harissa', price: 3.50, category: 'Mlawi', image: 'https://placehold.co/400x300/ef4444/ffffff?text=Mlawi%20Harissa' },
+            { id: 4, name: 'Mlawi Escalope', price: 8.00, category: 'Mlawi', image: 'https://placehold.co/400x300/3b82f6/ffffff?text=Mlawi%20Escalope' },
+            { id: 5, name: 'Mlawi Salami', price: 7.50, category: 'Mlawi', image: 'https://placehold.co/400x300/22c55e/ffffff?text=Mlawi%20Salami' },
+            { id: 6, name: 'Mlawi Merguez', price: 9.00, category: 'Mlawi', image: 'https://placehold.co/400x300/ec4899/ffffff?text=Mlawi%20Merguez' },
+            { id: 10, name: 'Galette Farcie', price: 6.50, category: 'Galette', image: 'https://placehold.co/400x300/fbbf24/ffffff?text=Galette%20Farcie' },
+            { id: 11, name: 'Pizza', price: 10.00, category: 'Pizza', image: 'https://placehold.co/400x300/f472b6/ffffff?text=Pizza' },
+            { id: 12, name: 'Baguette Farcie', price: 9.50, category: 'Baguette', image: 'https://placehold.co/400x300/818cf8/ffffff?text=Baguette%20Farcie' },
+            { id: 13, name: 'Chapati Jambon', price: 6.00, category: 'Chapati', image: 'https://placehold.co/400x300/818cf8/ffffff?text=Chapati%20Jambon' },
+            { id: 14, name: 'Chapati Ton', price: 7.00, category: 'Chapati', image: 'https://placehold.co/400x300/fb923c/ffffff?text=Chapati%20Ton' },
+            { id: 15, name: 'Chapati Fromage', price: 5.50, category: 'Chapati', image: 'https://placehold.co/400x300/f472b6/ffffff?text=Chapati%20Fromage' },
+            { id: 16, name: 'Chapati Salami', price: 8.00, category: 'Chapati', image: 'https://placehold.co/400x300/3b82f6/ffffff?text=Chapati%20Salami' },
+            { id: 17, name: 'Maqloub Jambon', price: 9.00, category: 'Maqloub', image: 'https://placehold.co/400x300/60a5fa/ffffff?text=Maqloub%20Jambon' },
+            { id: 18, name: 'Maqloub Ton', price: 10.00, category: 'Maqloub', image: 'https://placehold.co/400x300/34d399/ffffff?text=Maqloub%20Ton' },
+            { id: 19, name: 'Maqloub Fromage', price: 9.50, category: 'Maqloub', image: 'https://placehold.co/400x300/c084fc/ffffff?text=Maqloub%20Fromage' },
+            { id: 20, name: 'Maqloub Salami', price: 11.00, category: 'Maqloub', image: 'https://placehold.co/400x300/a855f7/ffffff?text=Maqloub%20Salami' },
+            { id: 21, name: 'Malfouf Jambon', price: 8.00, category: 'Malfouf', image: 'https://placehold.co/400x300/f59e0b/ffffff?text=Malfouf%20Jambon' },
+            { id: 22, name: 'Malfouf Ton', price: 9.00, category: 'Malfouf', image: 'https://placehold.co/400x300/ef4444/ffffff?text=Malfouf%20Ton' },
+            { id: 23, name: 'Malfouf Fromage', price: 8.50, category: 'Malfouf', image: 'https://placehold.co/400x300/3b82f6/ffffff?text=Malfouf%20Fromage' },
+            { id: 24, name: 'Malfouf Salami', price: 10.00, category: 'Malfouf', image: 'https://placehold.co/400x300/22c55e/ffffff?text=Malfouf%20Salami' },
+            { id: 25, name: 'Pizza Margueritta', price: 11.00, category: 'Pizza', image: 'https://placehold.co/400x300/ff7f50/ffffff?text=Pizza%20Margueritta' },
+            { id: 26, name: 'Pizza Jambon', price: 13.00, category: 'Pizza', image: 'https://placehold.co/400x300/e9d5ff/ffffff?text=Pizza%20Jambon' },
+            { id: 27, name: 'Pizza Ton', price: 14.00, category: 'Pizza', image: 'https://placehold.co/400x300/a78bfa/ffffff?text=Pizza%20Ton' },
+            { id: 28, name: 'Pizza Escalope', price: 15.00, category: 'Pizza', image: 'https://placehold.co/400x300/10b981/ffffff?text=Pizza%20Escalope' },
+            { id: 29, name: 'Coca-Cola', price: 2.50, category: 'Drinks', image: 'https://placehold.co/400x300/a855f7/ffffff?text=Soda' },
+            { id: 30, name: 'Sprite', price: 2.50, category: 'Drinks', image: 'https://placehold.co/400x300/a855f7/ffffff?text=Soda' },
+            { id: 31, name: 'Fanta', price: 2.50, category: 'Drinks', image: 'https://placehold.co/400x300/a855f7/ffffff?text=Soda' },
+            { id: 32, name: 'Mineral Water', price: 1.50, category: 'Drinks', image: 'https://placehold.co/400x300/a855f7/ffffff?text=Water' },
+            { id: 33, name: 'Pocket Frites', price: 2.50, category: 'Pocket', image: 'https://placehold.co/400x300/60a5fa/ffffff?text=Pocket%20Frites' }
         ];
 
         // DOM elements
@@ -254,10 +304,27 @@
         const specialPriceEl = document.getElementById('specialPrice');
         const emptyHistoryMessageEl = document.getElementById('emptyHistoryMessage');
         const emptyAnalyticsMessageEl = document.getElementById('emptyAnalyticsMessage');
+        const tipTextEl = document.getElementById('tipText');
+        const reviewForm = document.getElementById('reviewForm');
+        const reviewsDisplayEl = document.getElementById('reviewsDisplay');
+        const emptyReviewsMessageEl = document.getElementById('emptyReviewsMessage');
+        const categoryFiltersEl = document.getElementById('categoryFilters');
+
+        // Tip of the Day data
+        const tips = [
+            "For an authentic experience, try Mlawi with a side of harissa!",
+            "Did you know Mlawi is a type of flatbread, also known as 'tabouna'?",
+            "Mlawi is best served hot and fresh right off the grill.",
+            "Want to make it a meal? Add a refreshing Tunisian salad to your order!",
+            "The perfect Mlawi has a crispy outside and a soft, doughy inside.",
+            "Don't be shy with the olive oil, it adds incredible flavor!",
+            "Mlawi is a staple of Tunisian street food, perfect for a quick and delicious bite."
+        ];
 
         let cart = {};
         let currentTip = 0;
         let isShowingFavorites = false;
+        let currentCategory = 'All';
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         
         // Determine the daily special based on the current date
@@ -271,11 +338,12 @@
         function renderMenu() {
             mlawiMenuEl.innerHTML = '';
             const searchTerm = menuSearch.value.toLowerCase();
-            let filteredItems = menuItems.filter(item => item.name.toLowerCase().includes(searchTerm));
-
-            if (isShowingFavorites) {
-                filteredItems = filteredItems.filter(item => favorites.includes(item.id));
-            }
+            let filteredItems = menuItems.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = currentCategory === 'All' || item.category === currentCategory;
+                const matchesFavorites = !isShowingFavorites || favorites.includes(item.id);
+                return matchesSearch && matchesCategory && matchesFavorites;
+            });
 
             if (filteredItems.length === 0) {
                 mlawiMenuEl.innerHTML = '<p class="text-center text-gray-500 col-span-full">No items found.</p>';
@@ -299,15 +367,16 @@
                     <p class="text-gray-600 my-2">${item.price.toFixed(2)} TND</p>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
-                            <button data-id="${item.id}" data-action="decrease" class="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xl hover:bg-red-400 hover:text-white transition transform active:scale-95">-</button>
-                            <span id="quantity-${item.id}" class="text-lg font-semibold text-gray-800">${cart[item.id] ? cart[item.id].quantity : 0}</span>
                             <button data-id="${item.id}" data-action="increase" class="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xl hover:bg-green-400 hover:text-white transition transform active:scale-95">+</button>
+                            <span id="quantity-${item.id}" class="text-lg font-semibold text-gray-800">${cart[item.id] ? cart[item.id].quantity : 0}</span>
+                            <button data-id="${item.id}" data-action="decrease" class="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xl hover:bg-red-400 hover:text-white transition transform active:scale-95">-</button>
                         </div>
                     </div>
                 `;
                 mlawiMenuEl.appendChild(card);
             });
             updateFilterButtons();
+            updateCategoryButtons();
         }
 
         /**
@@ -393,7 +462,7 @@
             renderOrderHistory();
             renderAnalyticsDashboard();
         }
-
+        
         /**
          * Renders the order history from localStorage.
          */
@@ -414,8 +483,10 @@
                         <ul class="list-disc list-inside space-y-1 text-gray-600 mb-2">
                             ${order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('')}
                         </ul>
-                        <p class="text-right font-bold text-lg text-orange-600">Total: ${order.total.toFixed(2)} TND</p>
-                        <button data-order-id="${order.id}" class="reorder-btn w-full mt-2 py-2 px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition transform active:scale-95">Re-order</button>
+                        <div class="flex justify-between items-center mt-2">
+                           <p class="text-right font-bold text-lg text-orange-600">Total: ${order.total.toFixed(2)} TND</p>
+                           <button data-order-id="${order.id}" data-action="reorder" class="reorder-btn py-2 px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition transform active:scale-95">Re-order</button>
+                        </div>
                     `;
                     orderHistoryEl.appendChild(historyItem);
                 });
@@ -509,6 +580,32 @@
                 showAllBtn.classList.add('bg-orange-500', 'text-white', 'border-none');
             }
         }
+        
+        /**
+         * Renders the category filter buttons.
+         */
+        function renderCategoryButtons() {
+            const categories = ['All', ...new Set(menuItems.map(item => item.category))];
+            categoryFiltersEl.innerHTML = categories.map(category => `
+                <button class="category-btn px-4 py-2 rounded-xl bg-gray-200 text-gray-700 font-bold hover:bg-orange-500 hover:text-white transition transform active:scale-95" data-category="${category}">${category}</button>
+            `).join('');
+            updateCategoryButtons();
+        }
+
+        /**
+         * Updates the active state of the category filter buttons.
+         */
+        function updateCategoryButtons() {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (btn.dataset.category === currentCategory) {
+                    btn.classList.remove('bg-gray-200', 'text-gray-700');
+                    btn.classList.add('bg-orange-500', 'text-white');
+                } else {
+                    btn.classList.remove('bg-orange-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-700');
+                }
+            });
+        }
 
         /**
          * Tracks the popularity of items and saves it to localStorage.
@@ -553,6 +650,14 @@
         }
 
         /**
+         * Displays a random tip from the tips array.
+         */
+        function displayRandomTip() {
+            const randomIndex = Math.floor(Math.random() * tips.length);
+            tipTextEl.textContent = tips[randomIndex];
+        }
+
+        /**
          * Shows the confirmation modal.
          */
         function showModal() {
@@ -589,15 +694,45 @@
             }
         }
 
+        /**
+         * Renders the customer reviews from localStorage.
+         */
+        function renderReviews() {
+            const reviews = JSON.parse(localStorage.getItem('customerReviews')) || [];
+            reviewsDisplayEl.innerHTML = '';
+            if (reviews.length === 0) {
+                emptyReviewsMessageEl.style.display = 'block';
+            } else {
+                emptyReviewsMessageEl.style.display = 'none';
+                reviews.forEach(review => {
+                    const reviewItem = document.createElement('div');
+                    reviewItem.className = 'bg-gray-50 p-4 rounded-xl shadow-sm';
+                    const ratingStars = '⭐'.repeat(review.rating);
+                    reviewItem.innerHTML = `
+                        <div class="flex items-center space-x-2 mb-1">
+                            <p class="font-bold text-gray-800">${review.name}</p>
+                            <span class="text-yellow-400">${ratingStars}</span>
+                        </div>
+                        <p class="text-gray-600 text-sm italic">"${review.text}"</p>
+                    `;
+                    reviewsDisplayEl.appendChild(reviewItem);
+                });
+            }
+        }
+
+
         // --- Event Listeners ---
         window.addEventListener('load', () => {
             setInitialTheme();
             specialNameEl.textContent = dailySpecial.name;
             specialPriceEl.textContent = dailySpecial.price.toFixed(2) + ' TND';
+            renderCategoryButtons();
             renderMenu();
             updateUI();
             renderOrderHistory();
             renderAnalyticsDashboard();
+            displayRandomTip(); // Display the tip on load
+            renderReviews(); // Render reviews on load
         });
 
         mlawiMenuEl.addEventListener('click', (event) => {
@@ -628,12 +763,23 @@
         });
 
         orderHistoryEl.addEventListener('click', (event) => {
-            const reorderBtn = event.target.closest('.reorder-btn');
-            if (reorderBtn) {
-                const orderId = parseInt(reorderBtn.dataset.orderId, 10);
+            const button = event.target.closest('button');
+            if (!button) return;
+            const orderId = parseInt(button.dataset.orderId, 10);
+            const action = button.dataset.action;
+            if (action === 'reorder') {
                 reorder(orderId);
             }
         });
+
+        categoryFiltersEl.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            currentCategory = button.dataset.category;
+            isShowingFavorites = false; // Reset favorites filter when changing category
+            renderMenu();
+        });
+
 
         menuSearch.addEventListener('input', renderMenu);
         showAllBtn.addEventListener('click', () => {
@@ -654,6 +800,32 @@
         placeOrderBtn.addEventListener('click', placeOrder);
         clearCartBtn.addEventListener('click', clearCart);
         themeToggle.addEventListener('click', toggleTheme);
+
+        reviewForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reviewName').value;
+            const rating = document.getElementById('reviewRating').value;
+            const text = document.getElementById('reviewText').value;
+
+            if (name.trim() === '' || text.trim() === '') {
+                console.error('Review name and text cannot be empty.');
+                return;
+            }
+
+            const newReview = {
+                name,
+                rating: parseInt(rating),
+                text,
+                timestamp: Date.now()
+            };
+
+            const reviews = JSON.parse(localStorage.getItem('customerReviews')) || [];
+            reviews.unshift(newReview); // Add the newest review to the top
+            localStorage.setItem('customerReviews', JSON.stringify(reviews));
+            
+            reviewForm.reset();
+            renderReviews();
+        });
     </script>
 </body>
 </html>
